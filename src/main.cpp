@@ -5,7 +5,7 @@
 #include <string> 
 #include <cstring>
 #include <filesystem>
-#include "lib/image_ppm.h"
+#include "image_ppm.h"
 
 
 using namespace std;
@@ -208,8 +208,8 @@ Image* scale(Image * in, Image * model){
 
 vector<string> scanFolder(string path){
 	vector<string> res = vector<string>();
-	for(const auto & entry : fs::directory_iterator(path)){
-		res.push_back(entry.path());
+	for(const fs::directory_entry& entry : fs::directory_iterator(path)){
+		res.push_back(entry.path().string());
 		//cout<<entry.path()<<endl;
 	}
 
