@@ -10,10 +10,10 @@ Image* loadPpmFromFile(const char* name){
 	int ty;
 
 	//lire_nb_lignes_colonnes_image_pgm(name, &ty, &tx);
-    lire_nb_lignes_colonnes_image_ppm(name, &ty, &tx);
+    lire_nb_lignes_colonnes_image_ppm((char*)name, &ty, &tx);
 
 	allocation_tableau(tab, OCTET, tx*ty*3);
-	lire_image_ppm(name, tab, tx*ty);
+	lire_image_ppm((char*)name, tab, tx*ty);
 
 	res->tab = tab;
 	res->sizeX = tx;
