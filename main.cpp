@@ -5,7 +5,10 @@
 #include <string> 
 #include <cstring>
 #include <filesystem>
+
 #include "lib/image_ppm.h"
+
+
 
 
 using namespace std;
@@ -29,15 +32,34 @@ struct Region{
 	double bestPsnr = 0;
 };
 
-void free(Image * img){
-	delete(img->tab);
-	delete(img);
-}
 
-void free(Region * img){
-	delete(img->tab);
-	delete(img);
-}
+
+
+
+
+// void free(Image * img){
+// 	delete(img->tab);
+// 	delete(img);
+// }
+
+// void free(Region * img){
+// 	delete(img->tab);
+// 	delete(img);
+// }
+
+
+/////////////////////////////////
+void liberate(Image * img){
+	delete [] img->tab;
+	delete img;
+} 
+  
+void liberate(Region * img){
+	delete [] img->tab;
+	delete img;
+} 
+/////////////////////////////////
+
 
 double map(double x, double b1, double b2, double b3, double b4){
   return(((x-b1)/(b2-b1))*(b4-b3)+b3);
@@ -384,42 +406,93 @@ vector<vector<string>> * getDataBase(){
 
 void scale(vector<Region*> regions, int size){
 	for(int i = 0 ; i < regions.size() ; i ++){
-		//regions[i]->sizeX *= 10;
-		//regions[i]->sizeY *= 0.5;
+		regions[i]->sizeX *= size;
+		regions[i]->sizeY *= size;
 		regions[i]->startX *= size;
 		regions[i]->startY *= size;
-	}	
+	}		
 }
 
 
+// int main(int argc, char const *argv[]){
+// 	if(argc != 2){
+// 		cout<<"Il convient de mettre le nom d'un fichier"<<endl;
+// 		return 1;
+// 	}
+// 	int nb = 0;
+// 	Image* imageIn = loadPgmFromFile((char *)argv[1]);
+
+// 	vector<vector<string>> * dataBase =  getDataBase();
+
+// 	// for(int i = 0 ; i < dataBase->size() ; i++){
+// 	// 	cout<<i<<" : "<<dataBase->at(i).size()<<endl;
+// 	// } 
+
+
+// 	auto regions = split(imageIn, 40);
+// 	findBestImages(regions, dataBase);
+// 	//findBestImages(regions);
+
+// 	replaceWithBestImg(regions);
+
+// 	//replaceWithBestImgButBig(regions);
+// 	//scale(regions, 2);
+// 	Image* out = merge(regions);
+
+// 	writePgmToFile(out, (char *)"results/mosaique.pgm");
+
+// 	cout<<"psnr : "<<psnr(imageIn->tab,out->tab, out->sizeX,out->sizeY)<<endl;
+
+// 	return 0;
+// }
+
+#include "Couleur.hpp"
+
 int main(int argc, char const *argv[]){
-	if(argc != 2){
-		cout<<"Il convient de mettre le nom d'un fichier"<<endl;
+	if(argc != 4){
+		cout<<"Il convient de mettre le nom d'un fichier d'entré, de sortie et une taille de découpage"<<endl;
 		return 1;
 	}
 	int nb = 0;
-	Image* imageIn = loadPgmFromFile((char *)argv[1]);
 
-	vector<vector<string>> * dataBase =  getDataBase();
+	Image* imageIn = loadPpmFromFile((char *)argv[1]);
+
+	//vector<vector<string>> * dataBase =  getDataBase();
 
 	// for(int i = 0 ; i < dataBase->size() ; i++){
 	// 	cout<<i<<" : "<<dataBase->at(i).size()<<endl;
 	// } 
 
 
-	auto regions = split(imageIn, 40);
-	findBestImages(regions, dataBase);
-	//findBestImages(regions);
+	auto regions = splitColor(imageIn, atoi(argv[3]));
 
-	replaceWithBestImg(regions);
+	findBestImagesColor(regions);
+
+	for(int i = 0 ; i < regions.size() ; i ++){
+		cout<<"psnr : "<<regions[i]->bestPsnr<<endl;
+	}
+
+	scale(regions, 2);
+	replaceWithBestImgColor(regions);
 
 	//replaceWithBestImgButBig(regions);
-	//scale(regions, 2);
-	Image* out = merge(regions);
+	
+	Image* out = mergeColor(regions);
 
-	writePgmToFile(out, (char *)"results/mosaique.pgm");
+	// string p1 = "results/";
+	// string p2 = argv[1];
+	// string p3 = "mosaiqueColor.ppm";
+	
 
-	cout<<"psnr : "<<psnr(imageIn->tab,out->tab, out->sizeX,out->sizeY)<<endl;
+	// string name = p1+p2+p3;
+
+
+	//writePpmToFile(out, (char *)"results/"+argv[1]+"mosaiqueColor.ppm");
+	writePpmToFile(out, (char *)argv[2]);
+
+	//writePpmToFile(imageIn, (char *)"results/image par défault.ppm");
+
+	//cout<<"psnr : "<<psnr(imageIn->tab,out->tab, out->sizeX,out->sizeY)<<endl;
 
 	return 0;
 }

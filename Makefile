@@ -1,2 +1,2 @@
 main:
-	g++ main.cpp -std=c++17 -O3 -g -o exe
+	g++ main.cpp -fpermissive -std=c++17 -O3 -g -o exe
