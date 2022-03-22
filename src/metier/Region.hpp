@@ -11,22 +11,11 @@
 
 #include "image_ppm.h"
 #include "Couleur.hpp"
+#include "Database.hpp"
 #include "Image.hpp"
 
-
-
 using namespace std;
-namespace fs = std::filesystem;
 
-vector<string> scanFolder(string path){
-	vector<string> res = vector<string>();
-	for(const auto & entry : fs::directory_iterator(path)){
-		res.push_back(entry.path());
-		//cout<<entry.path()<<endl;
-	}
-
-	return res;
-}
 
 class Region : public Image{
 public :
@@ -51,7 +40,7 @@ public :
 };
 
 void findBestImages(vector<Region*> regions){
-	auto files = scanFolder("dataBase");
+	auto files = Database::scanFolder("dataBase");
 	for(int j = 0 ; j < files.size() ; j++){
         bool color = regions[0]->color;
 		auto f = files[j];
