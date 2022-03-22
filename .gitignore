@@ -1,8 +1,12 @@
-build/
-out/
-.vs/
+ppmColorDatabase.zip
 
-//Images
+.vs/
+.tmp/
+.vscode/
+
+out/
+build/
+
 images/
 results/
 ppmColorDatabase/
