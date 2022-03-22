@@ -57,7 +57,7 @@ void ecrire_image_ppm(char  nom_image[], OCTET *pt_image, int nb_lignes, int nb_
 /*===========================================================================*/
 
 /*===========================================================================*/		
-void lire_nb_lignes_colonnes_image_ppm(char nom_image[], int *nb_lignes, int *nb_colonnes)
+void lire_nb_lignes_colonnes_image_ppm(char *nom_image, int *nb_lignes, int *nb_colonnes)
 {
    FILE *f_image;
    int max_grey_val;

@@ -6,7 +6,7 @@
 #include <cstring>
 #include <filesystem>
 
-#include "lib/image_ppm.h"
+#include "image_ppm.h"
 
 
 

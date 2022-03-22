@@ -15,9 +15,9 @@ endif()
 # Dossier d'include, contentant des .h / .hpp
 include_directories(
 	lib/
+	src/metier/
 )
 
 add_executable( Mosaique 
-	src/Couleur.hpp
 	src/main.cpp
 )

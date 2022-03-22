@@ -2,7 +2,7 @@ void writePpmToFile(Image * img, char* nom){
 	ecrire_image_ppm(nom, img->tab,  img->sizeY, img->sizeX);
 }
 
-Image* loadPpmFromFile(const char* name){
+Image* loadPpmFromFile(char* name){
 	Image *res = new Image();
 
 	OCTET* tab; 
@@ -187,7 +187,7 @@ double ressemblanceColor(Image * in, Region * reg){
 void findBestImagesColor(vector<Region*> regions){
 	auto files = scanFolder("ppmColorDatabase");
 	for(int j = 0 ; j < files.size() ; j++){
-        const char * f = files[j].c_str();
+        char * f = (char*)files[j].c_str();
 
         // cout<<" f = "<<f<<endl;
 
