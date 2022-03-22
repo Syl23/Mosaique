@@ -1,6 +1,6 @@
-#! /bin/bash
-for fich in `ls selectionCroped`
+#! /bin/bash 
+for fich in `ls colorDatabase`
 do
     echo $fich
-    ffmpeg -i "selectionCroped/"$fich "promo/""${fich%.jpg}.ppm"
+    ffmpeg -i "colorDatabase/"$fich "ppmColorDatabase/""${fich%.jpg}.ppm"
 done

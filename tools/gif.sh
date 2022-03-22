@@ -9,5 +9,5 @@ do
         ffmpeg -i results/promo/${fich%.ppm}$x.ppm results/promo/${fich%.ppm}$x.jpg
         Var=$(($Var * 2))
     done
-    ffmpeg -f image2 -framerate 1 -i results/promo/${fich%.ppm}d.jpg -loop -1 results/promo/${fich%.ppm}.gif
+    ffmpeg -f image2 -framerate 1 -i results/promo/${fich%.ppm}%0d.jpg -loop -1 results/gif/${fich%.ppm}.gif
 done
