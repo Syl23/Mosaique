@@ -10,10 +10,10 @@ Image* loadPpmFromFile(const char* name){
 	int ty;
 
 	//lire_nb_lignes_colonnes_image_pgm(name, &ty, &tx);
-    lire_nb_lignes_colonnes_image_ppm((char*)name, &ty, &tx);
+    lire_nb_lignes_colonnes_image_ppm(name, &ty, &tx);
 
 	allocation_tableau(tab, OCTET, tx*ty*3);
-	lire_image_ppm((char*)name, tab, tx*ty);
+	lire_image_ppm(name, tab, tx*ty);
 
 	res->tab = tab;
 	res->sizeX = tx;
@@ -105,12 +105,6 @@ float colorPsnr(OCTET* ImgIn,OCTET* ImgOut, int nH, int nW)
   return 10*log10(d*d / EQM);
 }
 
-struct color{
-    double r;
-    double g;
-    double b;
-};
-
 //double colorAvgDiff()
 
 struct color avgColor(Image * in){
@@ -151,9 +145,32 @@ color avgColor(Region * in){
 
 	return res;
 }
+// color varColor(Region * in){
+// 	color res;
+
+//     res.r=0;
+//     res.g=0;
+//     res.b=0;
+
+// 	for(int i = 0 ; i < in->sizeX*in->sizeY ; i++){
+//         res.r += in->tab[i*3+0];
+//         res.g += in->tab[i*3+1];
+//         res.b += in->tab[i*3+2];
+// 	}
+
+//     res.r = res.r/(in->sizeX*in->sizeY);
+//     res.g = res.g/(in->sizeX*in->sizeY);
+//     res.b = res.b/(in->sizeX*in->sizeY);
+
+// 	return res;
+// }
 
 double colorDist(color a, color b){
     return sqrt(square(a.r-b.r) + square(a.g-b.g) + square(a.b-b.b));
+}
+
+double colorSqDist(color a, color b){
+    return square(a.r-b.r) + square(a.g-b.g) + square(a.b-b.b);
 }
 
 double ressemblanceColor(Image * in, Region * reg){
@@ -241,6 +258,41 @@ Image * mergeColor(vector<Region*> regs){
 
 	return res;
 }
+
+// double equartTypeColor(Region * reg){
+// 	reg->avgColor = avgColor(reg);
+
+// 	double variance = 0.0;
+
+// 	for(int i = 0 ; i < reg->sizeX*reg->sizeY ; i ++){
+// 		variance += colorSqDist(color(reg->avgColor,color(reg->tab[i*3],reg->tab[i*3+1],reg->tab[i*3+2])));
+// 	}
+// 	return sqrt(variance);
+// }
+
+
+// vector<Region*> splitColorWithUnevenZones(Image * img, double ecartType){//erase(i)
+// 	vector<Region*> res;
+// 	res.push_back(Region());
+// 	allocation_tableau(res[0]->tab, OCTET, img->sizeX*img->sizeY*3);
+// 	for(int i = 0 ; i < img->sizeX*img->sizeY*3 ; i ++){
+// 		res[0] = img->tab[i];
+// 	}
+// 	//res[0]->avgColor   = avgColor(res[0]);
+// 	res[0]->equartType = equartTypeColor(res[0]); 
+
+
+// 	vector<Region*> remaining;
+// 	remaining.push_back(res[0]);
+
+// 	while(remaining.size()!=0){
+// 		Region *current = remaining.back();
+// 		remaining.pop_back();
+
+
+// 	}
+// }
+
 
 // vector<vector<string>> * importColorDatabase(){
 // 	ifstream file("dataBase.dat", ios::in);
