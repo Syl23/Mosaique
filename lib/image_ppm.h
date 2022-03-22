@@ -1,3 +1,5 @@
+#ifndef __IMAGE_PPM_H__
+#define __IMAGE_PPM_H__
 // ----------------------------------------------------------------------------
 // Filename        : image_ppm.c
 // Description     :
@@ -221,3 +223,4 @@ void lire_image_pgm(char  nom_image[], OCTET *pt_image, int taille_image)
       }
 }
 /*===========================================================================*/
+#endif
