@@ -21,7 +21,8 @@ public :
 	int startX;
 	int startY;
 
-	string bestImg;
+	Image * bestImg;
+	int cursorPosGiga;
 	double bestPsnr;
     Region(){
 		startX = 0;
@@ -133,12 +134,11 @@ void unevenFindBestImages(vector<Region*> regions){
 			double tmPsnr = vignette->ressemblance(regions[i]);
 			if(tmPsnr > regions[i]->bestPsnr){
 				regions[i]->bestPsnr = tmPsnr;
-				regions[i]->bestImg = f;
+				regions[i]->bestImg = tmp;
 			}
 			delete vignette;
 
 		}
-		delete tmp;
 	}
 }
 void findBestImages(vector<Region*> regions){
@@ -168,11 +168,117 @@ void findBestImages(vector<Region*> regions){
 			double tmPsnr = vignette->ressemblance(regions[i]);
 			if(tmPsnr > regions[i]->bestPsnr){
 				regions[i]->bestPsnr = tmPsnr;
-				regions[i]->bestImg = f;
+				regions[i]->bestImg = tmp;
 			}
 		}
 		delete vignette;
 		delete tmp;
+	}
+}
+
+void findBestImagesGiga(vector<Region*> regions, bool uneven) {
+	string databaseName = "dataBase/";
+	ifstream databaseLocation("DatabaseLocation");
+	bool found = false;
+	if (databaseLocation.good()) {
+		found = (bool)getline(databaseLocation, databaseName);
+		databaseLocation.close();
+	}
+	if (!found) {
+		ofstream write("DatabaseLocation");
+		write << databaseName;
+		write.close();
+	}
+
+	auto files = Database::scanFolder(databaseName);
+	for (int j = 0; j < files.size(); j++) {
+		bool color = regions[0]->color;
+		int nbCouleur = (color ? 3 : 1);
+		ifstream gigafile;
+		gigafile.open((files[j]), std::ifstream::in | std::ios::binary);
+		if (gigafile.good()) {
+			int counter = 0;
+			bool headerRead = true;
+			while(!gigafile.eof() && gigafile.good() && headerRead) {
+					cout << "Counter : " << counter << "\n";
+					cout << (int)gigafile.tellg() << std::endl;
+
+				char * line = new char[256];
+				int sequence = 0;
+				int nb_lignes = 0;
+				int nb_colonnes = 0;
+				bool headerRead = false;
+				int cursorGiga = 0;
+				bool read = true;
+				while (!headerRead && read) {
+					read = (bool)gigafile.getline(line, 256);
+					if (read) {
+						string line_str(line);
+						if (!line_str._Starts_with("#")) {
+							if (sequence == 2) {
+								headerRead = true;
+								sequence = 3;
+							}
+							if (sequence == 1) {
+
+								int max_grey_val = 0;
+								int lastpos = line_str.find((char) 0x20, 0);
+								nb_colonnes = atoi(line_str.substr(0, lastpos).data());
+								nb_lignes = atoi(line_str.substr(lastpos + 1).data());
+
+								sequence = 2;
+							}
+							if (sequence == 0) {
+								if (line_str._Starts_with("P1") || line_str._Starts_with("P2") || line_str._Starts_with("P3") || line_str._Starts_with("P4") || line_str._Starts_with("P5") || line_str._Starts_with("P6")) {
+									sequence = 1;
+								}
+							}
+
+						}
+					}
+				}
+				counter++;
+				cout << (int)gigafile.tellg() << std::endl;
+
+				if (headerRead && !gigafile.eof()) {
+					while (gigafile.peek() == '\n') {
+						gigafile.get();
+					}
+					unsigned char * data = new unsigned char[nb_lignes * nb_colonnes * nbCouleur];
+					gigafile.read((char*)data, nb_lignes * nb_colonnes * nbCouleur);
+					Image* tmp = new Image(color);
+					tmp->tab = data;
+					tmp->sizeX = nb_colonnes;
+					tmp->sizeY = nb_lignes;
+					Image* vignette;
+					if (!uneven) {
+						vignette = tmp->scale(regions[0]);
+					}
+
+
+					for (int i = 0; i < regions.size(); i++) {
+						if (uneven) {
+							vignette = tmp->scale(regions[i]);
+						}
+						double tmPsnr = vignette->ressemblance(regions[i]);
+						if (tmPsnr > regions[i]->bestPsnr) {
+							regions[i]->bestPsnr = tmPsnr;
+							regions[i]->bestImg = tmp;
+						}
+						if (uneven) {
+							delete vignette;
+						}
+					}
+					if (!uneven) {
+						delete vignette;
+					}
+
+					//delete tmp;
+				}
+			}
+		}
+		cout << ((int)(map(j, 0, files.size(), 0, 100) * 100.0)) / 100.0 << "%\n";
+		gigafile.close();
 	}
 }
 
@@ -229,10 +335,8 @@ void findBestImages(vector<Region*> regions){
 void replaceWithBestImg(vector<Region*> regions){
     bool color = regions[0]->color;
 	for(int i = 0 ; i < regions.size() ; i++){
-		Image * tmp = new Image((char *)regions[i]->bestImg.c_str(), color);
-		Image * vignette =  tmp->scale(regions[i]);
+		Image * vignette = regions[i]->bestImg->scale(regions[i]);
 
-		delete tmp;
 		delete regions[i]->tab;
 		regions[i]->tab = vignette->tab;
 	}

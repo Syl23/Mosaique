@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <string>
 
 #define allocation_tableau(nom, type, nombre) \
 if( (nom = (type*) calloc (nombre, sizeof(type) ) ) == NULL ) \
@@ -28,6 +29,7 @@ void ignorer_commentaires(FILE * f)
     while((c=fgetc(f)) != '\n');
   fseek(f, -sizeof(unsigned char), SEEK_CUR);
 }
+
 /*===========================================================================*/
 
 
@@ -81,6 +83,14 @@ void lire_nb_lignes_colonnes_image_ppm(char *nom_image, int *nb_lignes, int *nb_
 	 fscanf(f_image, "%d %d %d%*c", nb_colonnes, nb_lignes, &max_grey_val);
 	 fclose(f_image);
       }
+}
+void lire_nb_lignes_colonnes_image_ppm_content(std::string contentFile, int* nb_lignes, int* nb_colonnes)
+{
+	int max_grey_val;
+
+	scanf(contentFile.c_str(), "P6 ");
+	//ignorer_commentaires(f_image);
+	scanf(contentFile.c_str(), "%d %d %d%*c", nb_colonnes, nb_lignes, &max_grey_val);
 }
 /*===========================================================================*/
 /*===========================================================================*/

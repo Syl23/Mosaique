@@ -11,3 +11,5 @@ images/
 results/
 ppmColorDatabase/
 dataBase/
+gigaDatabase/
+*.giga

@@ -27,6 +27,7 @@ public :
         this->color = color;
     }
 
+
     Image(char* name, bool color = true){
         this->color = color;
         if(color){
