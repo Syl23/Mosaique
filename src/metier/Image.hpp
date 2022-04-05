@@ -53,7 +53,7 @@ public :
     }
 
     double variance(Couleur moyenne){
-        double res;
+        double res = 0;
 
         if(this->color){
             for(int i = 0 ; i < this->sizeX*this->sizeY ; i++){
@@ -142,12 +142,13 @@ public :
                 int d =255;
                 float diff =0.;
                 int nW = this->sizeX;
-                for(int i =0; i < nW*nW*3 ; i++)
+                int nH = this->sizeY;
+                for(int i =0; i < nH *nW*3 ; i++)
                 {
                     diff += sqrt((this->tab[i]-disImg->tab[i])*(this->tab[i]-disImg->tab[i]));
                 }
 
-                float EQM = 1./(nW*nW*3) * diff;
+                float EQM = 1./(nH*nW*3) * diff;
                 res = 10*log10(d*d / EQM);
             } else {
                 double sum = 0.0;

@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]){
 	Image* imageIn = new Image((char *)argv[1]);
 	vector<Region*> regions;
 	if(uneven){
-		regions = unevenSplit(imageIn, (double)atoi(argv[3]));
+		regions = unevenSplit(imageIn, (double)atoi(argv[3]), 8);
 		unevenFindBestImages(regions);
 	} else {
 		regions = split(imageIn, atoi(argv[3]));

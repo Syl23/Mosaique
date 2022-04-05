@@ -16,8 +16,6 @@
 
 using namespace std;
 
-int counterNew = 0;
-
 class Region : public Image{
 public :
 	int startX;
@@ -26,6 +24,8 @@ public :
 	string bestImg;
 	double bestPsnr;
     Region(){
+		startX = 0;
+		startY = 0;
 		bestPsnr = 0;
     }
     ~Region(){
@@ -39,45 +39,66 @@ public :
         this->startY *= a;
     }
 
-	bool split(vector<Region *> *regions, double seuil){
+	bool split(vector<Region *> *regions, double seuil, int minimal){
 		bool isFeuille = true;
-		if(this->sizeX > 16 && this->sizeY > 16){
+		if(this->sizeX >= minimal && this->sizeY >= minimal){
 			Couleur c = this->avg();
 			double variance = this->variance(c);
-			cout << "Var : " << variance << endl;
 			if(variance > seuil){
 				isFeuille = false;
-				int regSizeX = this->sizeX / 2;
-				int regSizeY = this->sizeY / 2;
+				int regSizeX = 0;
+				int regSizeY = 0;
+
+				int cumulativeRegSizeX = 0;
+
 				for(int x = 0 ; x < 2 ; x++){
+					regSizeX = this->sizeX / 2;
+					int cumulativeRegSizeY = 0;
+
+					if (this->sizeX % 2 == 1 && x == 1) {
+						regSizeX++;
+					}
+
 					for(int y = 0 ; y < 2 ; y++){
-						Region * tmp = new Region();
-						counterNew++;
-						
+
+						Region* tmp = new Region();
+
+						regSizeY = this->sizeY / 2;
+						if (this->sizeY % 2 == 1 && y == 1) {
+							regSizeY++;
+						}
+
+
 						allocation_tableau(tmp->tab, OCTET, regSizeX*regSizeY*3);
-						tmp->startX = (x*regSizeX);
-						tmp->startY = (y*regSizeY);
+
+						tmp->startX = cumulativeRegSizeX;
+						tmp->startY = cumulativeRegSizeY;
 
 						tmp->sizeX = regSizeX;
 						tmp->sizeY = regSizeY;
 						
-						for(int j = (y*regSizeY) ; j < tmp->startY + tmp->sizeY ; j++){
-							for(int i = (x*regSizeX) ; i < tmp->startX + tmp->sizeX ; i++ ){
+						for(int j = cumulativeRegSizeY; j < tmp->startY + tmp->sizeY ; j++){
+							for(int i = cumulativeRegSizeX; i < tmp->startX + tmp->sizeX ; i++ ){
 								for(int c = 0 ; c< 3 ; c++){
-									tmp->tab[((j-tmp->startY)*tmp->sizeX + i - tmp->startX)*3+c] = this->tab[(j*this->sizeX + i)*3+c];
+									OCTET oct = this->tab[(j * this->sizeX + i) * 3 + c];
+									tmp->tab[((j - tmp->startY) * tmp->sizeX + i - tmp->startX) * 3 + c] = oct;
 								}
 							}
 						}
 
-						tmp->startX = (x*regSizeX) + this->startX;
-						tmp->startY = (y*regSizeY) + this->startY;
+						tmp->startX = cumulativeRegSizeX + this->startX;
+						tmp->startY = cumulativeRegSizeY + this->startY;
 
-						if(tmp->split(regions, seuil)){
+						if(tmp->split(regions, seuil, minimal)){
 							regions->push_back(tmp);
 						} else {
 							delete tmp;
 						}
+
+						cumulativeRegSizeY = cumulativeRegSizeY + regSizeY;
 					}
+					cumulativeRegSizeX = cumulativeRegSizeX + regSizeX;
+
 				}
 			}
 		}
@@ -226,18 +247,16 @@ void scale(vector<Region*> regions, int size){
 	}		
 }
 
-vector<Region*> unevenSplit(Image * img, double seuil){
+vector<Region*> unevenSplit(Image * img, double seuil, int minimal){
 	vector<Region*> res;
 	Region * r = new Region();
-	counterNew++;
-	std::cout << "Counter : " << counterNew << std::endl;
 	r->startX = 0;
 	r->startY = 0;
 	r->sizeX = img->sizeX;
 	r->sizeY = img->sizeY;
 	r->tab = img->tab;
 	r->color = img->color;
-	if(r->split(&res, seuil)){
+	if(r->split(&res, seuil, minimal)){
 		res.push_back(r);
 	} else {
 		delete r;
