@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.12)
 project ("Mosaique")
 
 if(MSVC)
-	add_compile_options( /debug /std:c++latest )
+	add_compile_options(/permissive /debug /std:c++latest )
 else()
 	add_compile_options(-std=c++17 -g -fpermissive)
 endif()

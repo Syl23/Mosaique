@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]){
 	if(argc != 5){
 		
 		cout<<"Il convient de mettre le nom d'un fichier d'entré, de sortie, une taille de découpage et un scale"<<endl;
-		cout << "Usage : " << argv[0] << " entree.ppm sortie.ppm split scale\n";
+		cout << "Usage : " << argv[0] << " entree.ppm sortie.ppm split/seuil scale\n";
 		return 1;
 	}
 

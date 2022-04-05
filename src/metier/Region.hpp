@@ -127,22 +127,28 @@ void unevenFindBestImages(vector<Region*> regions){
 	}
 	auto files = Database::scanFolder(databaseName);
 	for(int j = 0 ; j < files.size() ; j++){
+		if (j % 10 == 0) {
+			cout << "Counter : " << j << endl;
+		}
         bool color = regions[0]->color;
 		auto f = files[j];
 
 		Image * tmp = new Image((char *)f.c_str(), color);
-
-		cout<<((int)(map(j,0,files.size(),0,100)*100.0))/100.0<<"%"<<endl;
+		bool set = false;
 		for(int i = 0 ; i < regions.size() ; i++){
 			Image * vignette =  tmp->scale(regions[i]);
-
+			
 			double tmPsnr = vignette->ressemblance(regions[i]);
 			if(tmPsnr > regions[i]->bestPsnr){
 				regions[i]->bestPsnr = tmPsnr;
 				regions[i]->bestImg = tmp;
+				set = true;
 			}
 			delete vignette;
-
+			
+		}
+		if (!set) {
+			delete tmp;
 		}
 	}
 }
@@ -167,17 +173,20 @@ void findBestImages(vector<Region*> regions){
 
 		Image * tmp = new Image((char *)f.c_str(), color);
 		Image * vignette =  tmp->scale(regions[0]);
-
+		bool set = false;
 		cout<<((int)(map(j,0,files.size(),0,100)*100.0))/100.0<<"%"<<endl;
 		for(int i = 0 ; i < regions.size() ; i++){
 			double tmPsnr = vignette->ressemblance(regions[i]);
 			if(tmPsnr > regions[i]->bestPsnr){
 				regions[i]->bestPsnr = tmPsnr;
 				regions[i]->bestImg = tmp;
+				set = true;
 			}
 		}
 		delete vignette;
-		delete tmp;
+		if (!set) {
+			delete tmp;
+		}
 	}
 }
 
@@ -237,7 +246,6 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 				if (counter % 10 == 0) {
 					cout << "Counter : " << counter << "\n";
 				}
-
 				int nb_lignes = 0;
 				int nb_colonnes = 0;
 				//READ EN TETE
@@ -246,9 +254,6 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 				counter++;
 
 				if (!gigafile.eof()) {
-					while (gigafile.peek() == '\n') {
-						gigafile.get();
-					}
 					unsigned char * data = new unsigned char[nb_lignes * nb_colonnes * nbCouleur];
 					gigafile.read((char*)data, nb_lignes * nb_colonnes * nbCouleur);
 					Image* tmp = new Image(color);
@@ -259,8 +264,7 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 					if (!uneven) {
 						vignette = tmp->scale(regions[0]);
 					}
-
-
+					bool set = false;
 					for (int i = 0; i < regions.size(); i++) {
 						if (uneven) {
 							vignette = tmp->scale(regions[i]);
@@ -269,15 +273,19 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 						if (tmPsnr > regions[i]->bestPsnr) {
 							regions[i]->bestPsnr = tmPsnr;
 							regions[i]->bestImg = tmp;
+							set = true;
 						}
 						if (uneven) {
 							delete vignette;
 						}
 					}
+					
 					if (!uneven) {
 						delete vignette;
 					}
-
+					if (!set) {
+						delete tmp;
+					}
 					//delete tmp;
 				}
 				
