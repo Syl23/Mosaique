@@ -107,6 +107,11 @@ public :
 	}
 };
 
+struct Vector2 {
+	int x;
+	int y;
+};
+
 void unevenFindBestImages(vector<Region*> regions){
 	string databaseName = "dataBase/";
 	ifstream databaseLocation ("DatabaseLocation");
@@ -176,6 +181,35 @@ void findBestImages(vector<Region*> regions){
 	}
 }
 
+void readEntete(ifstream* file, int &nb_colonnes, int &nb_lignes) {
+	int octet = file->get();
+	if (octet == 'P') {
+		do {
+			octet = file->get();
+		} while (octet != 0x0A);
+	}
+	string str = "";
+	do {
+		octet = file->get();
+		char c = octet;
+		str.push_back(c);
+	} while (octet != 0x0A && octet != 0x20);
+	nb_colonnes = atoi(str.c_str());
+
+	str = "";
+	do {
+		octet = file->get();
+		char c = octet;
+		str.push_back(c);
+	} while (octet != 0x0A && octet != 0x20);
+	
+	nb_lignes = atoi(str.c_str());
+
+	do {
+		octet = file->get();
+	} while (octet != 0x0A);
+}
+
 void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 	string databaseName = "dataBase/";
 	ifstream databaseLocation("DatabaseLocation");
@@ -195,52 +229,23 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 		bool color = regions[0]->color;
 		int nbCouleur = (color ? 3 : 1);
 		ifstream gigafile;
-		gigafile.open((files[j]), std::ifstream::in | std::ios::binary);
+		gigafile.open((files[j]), ifstream::in | ifstream::binary);
 		if (gigafile.good()) {
 			int counter = 0;
 			bool headerRead = true;
-			while(!gigafile.eof() && gigafile.good() && headerRead) {
+			while(gigafile.good() && headerRead) {
+				if (counter % 10 == 0) {
 					cout << "Counter : " << counter << "\n";
-					cout << (int)gigafile.tellg() << std::endl;
+				}
 
-				char * line = new char[256];
-				int sequence = 0;
 				int nb_lignes = 0;
 				int nb_colonnes = 0;
-				bool headerRead = false;
-				int cursorGiga = 0;
-				bool read = true;
-				while (!headerRead && read) {
-					read = (bool)gigafile.getline(line, 256);
-					if (read) {
-						string line_str(line);
-						if (!line_str._Starts_with("#")) {
-							if (sequence == 2) {
-								headerRead = true;
-								sequence = 3;
-							}
-							if (sequence == 1) {
-
-								int max_grey_val = 0;
-								int lastpos = line_str.find((char) 0x20, 0);
-								nb_colonnes = atoi(line_str.substr(0, lastpos).data());
-								nb_lignes = atoi(line_str.substr(lastpos + 1).data());
-
-								sequence = 2;
-							}
-							if (sequence == 0) {
-								if (line_str._Starts_with("P1") || line_str._Starts_with("P2") || line_str._Starts_with("P3") || line_str._Starts_with("P4") || line_str._Starts_with("P5") || line_str._Starts_with("P6")) {
-									sequence = 1;
-								}
-							}
-
-						}
-					}
-				}
+				//READ EN TETE
+				readEntete(&gigafile, nb_colonnes, nb_lignes);
+				// FIN READ ENTETE
 				counter++;
-				cout << (int)gigafile.tellg() << std::endl;
 
-				if (headerRead && !gigafile.eof()) {
+				if (!gigafile.eof()) {
 					while (gigafile.peek() == '\n') {
 						gigafile.get();
 					}
@@ -275,6 +280,7 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 
 					//delete tmp;
 				}
+				
 			}
 		}
 		cout << ((int)(map(j, 0, files.size(), 0, 100) * 100.0)) / 100.0 << "%\n";
