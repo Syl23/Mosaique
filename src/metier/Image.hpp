@@ -89,6 +89,7 @@ public :
         Image * res = new Image();
         res->sizeX = model->sizeX;
         res->sizeY = model->sizeY;
+        res->color = this->color;
         if(this->color){
             allocation_tableau(res->tab, OCTET, res->sizeX*res->sizeY*3);
             for(int y = 0 ; y < res->sizeY ; y ++){
@@ -116,37 +117,37 @@ public :
         return res;
     }
     double psnr(Image* disImg , int n , int m){
-    double res = -1.0;
-    if(this->color == disImg->color){
-        if(this->color){
-            int d =255;
-            float diff =0.;
-            int nW = this->sizeX;
-            for(int i =0; i < nW*nW*3 ; i++)
-            {
-                diff += sqrt((this->tab[i]-disImg->tab[i])*(this->tab[i]-disImg->tab[i]));
+        double res = -1.0;
+        if(this->color == disImg->color){
+            if(this->color){
+                int d =255;
+                float diff =0.;
+                int nW = this->sizeX;
+                for(int i =0; i < nW*nW*3 ; i++)
+                {
+                    diff += sqrt((this->tab[i]-disImg->tab[i])*(this->tab[i]-disImg->tab[i]));
+                }
+
+                float EQM = 1./(nW*nW*3) * diff;
+                res = 10*log10(d*d / EQM);
+            } else {
+                double sum = 0.0;
+                int i;
+                double error;
+
+                for (i=0; i<n*m; i++){
+                    error = this->tab[i] - disImg->tab[i];
+                    sum = error * error;
+                }
+
+                double mse = sum/ (n*m);
+                res = 10.0* log (255.0 * 255.0/mse) / log (10.0);
             }
 
-            float EQM = 1./(nW*nW*3) * diff;
-            res = 10*log10(d*d / EQM);
-        } else {
-            double sum = 0.0;
-            int i;
-            double error;
-
-            for (i=0; i<n*m; i++){
-                error = this->tab[i] - disImg->tab[i];
-                sum = error * error;
-            }
-
-            double mse = sum/ (n*m);
-            res = 10.0* log (255.0 * 255.0/mse) / log (10.0);
         }
 
+        return res;
     }
-
-	return res;
-}
 
 };
 

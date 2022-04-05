@@ -1,9 +1,10 @@
 # CMakeList.txt : fichier projet CMake de niveau supérieur, effectuez une configuration globale
 # et incluez les sous-projets ici.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.12)
 
 project ("Mosaique")
+add_compile_definitions(WINDOWS)
 
 if(MSVC)
 	add_compile_options(/permissive /debug /std:c++17)
@@ -11,6 +12,8 @@ else()
 	add_compile_options(-std=c++17 -g -fpermissive)
 endif()
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/images/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/images/)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseLocation DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 
 # Dossier d'include, contentant des .h / .hpp
 include_directories(

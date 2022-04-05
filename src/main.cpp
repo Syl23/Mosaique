@@ -24,7 +24,7 @@ int main(int argc, char const *argv[]){
 
 	Image* imageIn = new Image((char *)argv[1]);
 
-	auto regions = split(imageIn, atoi(argv[3]));
+	vector<Region*> regions = split(imageIn, atoi(argv[3]));
 
 	findBestImages(regions);
 

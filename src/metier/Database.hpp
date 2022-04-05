@@ -6,8 +6,11 @@
 #include <string>
 #include <filesystem>
 
+#include "Image.hpp"
+
 using namespace std;
 namespace fs = std::filesystem;
+
 
 class Database{
 public:
@@ -72,11 +75,12 @@ public:
 	}
 
 	static vector<string> scanFolder(string path){
+		std::cout << "Oui" << std::endl;
 		vector<string> res = vector<string>();
 		for(const auto & entry : fs::directory_iterator(path)){
-			res.push_back(entry.path());
-			//cout<<entry.path()<<endl;
+			res.push_back(entry.path().string());
 		}
+		std::cout << "non ?" << std::endl;
 
 		return res;
 	}

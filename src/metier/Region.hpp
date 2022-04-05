@@ -40,7 +40,21 @@ public :
 };
 
 void findBestImages(vector<Region*> regions){
-	auto files = Database::scanFolder("dataBase");
+
+	string databaseName = "dataBase/";
+	ifstream databaseLocation ("DatabaseLocation");
+	bool found = false;
+	if (databaseLocation.good()) {
+		found = (bool)getline(databaseLocation, databaseName);
+		databaseLocation.close();
+	}
+	if (!found) {
+		ofstream write("DatabaseLocation");
+		write << databaseName;
+		write.close();
+	}
+	std::cout << "Database : " << databaseName << std::endl;
+	auto files = Database::scanFolder(databaseName);
 	for(int j = 0 ; j < files.size() ; j++){
         bool color = regions[0]->color;
 		auto f = files[j];
@@ -114,7 +128,7 @@ void findBestImages(vector<Region*> regions){
 }*/
 
 void replaceWithBestImg(vector<Region*> regions){
-    bool color = regions[0];
+    bool color = regions[0]->color;
 	for(int i = 0 ; i < regions.size() ; i++){
 		Image * tmp = new Image((char *)regions[i]->bestImg.c_str(), color);
 		Image * vignette =  tmp->scale(regions[i]);
@@ -193,46 +207,56 @@ vector<Region*> split(Image * img, int nbvdiv){
 }
 
 Image * merge(vector<Region*> regs){
-		Image * img = new Image();
-        img->sizeX = 0;
-        img->sizeY = 0;
-        if(regs.size() > 0){
-            img->color = regs[0]->color;
-        }
-        for(int i = 0 ; i < regs.size() ; i ++){
-            if(regs[i]->sizeX + regs[i]->startX > img->sizeX){
-                img->sizeX = regs[i]->sizeX + regs[i]->startX;
-            }
-            if(regs[i]->sizeY + regs[i]->startY > img->sizeY){
-                img->sizeY = regs[i]->sizeY + regs[i]->sizeX;
-                allocation_tableau(img->tab, OCTET, img->sizeX*img->sizeY*3);
-                for(int i = 0 ; i < regs.size() ; i ++){
-                    for(int y = 0 ; y < regs[i]->sizeY ; y++){
-                        for(int x = 0 ; x < regs[i]->sizeX ; x++){
-                            for(int c = 0; c < 3 ; c++){
-                                img->tab[
-                                    ((y+regs[i]->startY)*img->sizeX + x + regs[i]->startX)*3+c] 
-                                    = 
-                                    regs[i]->tab[(y*regs[i]->sizeX + x)*3+c];
-                            }
-                        }
-                    }
-                }
-            } else {
-                allocation_tableau(img->tab, OCTET, img->sizeX*img->sizeY);
-                for(int i = 0 ; i < regs.size() ; i ++){
-                    for(int y = 0 ; y < regs[i]->sizeY ; y++){
-                        for(int x = 0 ; x < regs[i]->sizeX ; x++){
-                            img->tab[
-                                (y+regs[i]->startY)*img->sizeX + x + regs[i]->startX] 
-                                = 
-                                regs[i]->tab[y*regs[i]->sizeX + x];
-                        }
-                    }
-                }
-            }
-        }
+	Image * img = new Image();
+	img->sizeX = 0;
+	img->sizeY = 0;
+
+	if(regs.size() > 0){
+		img->color = regs[0]->color;
+	}else{
 		return img;
-    }
+	}
+	
+
+	for(int i = 0 ; i < regs.size() ; i ++){
+		if(regs[i]->sizeX + regs[i]->startX > img->sizeX){
+			img->sizeX = regs[i]->sizeX + regs[i]->startX;
+		}
+		if(regs[i]->sizeY + regs[i]->startY > img->sizeY){
+			img->sizeY = regs[i]->sizeY + regs[i]->startY;
+		}
+	}
+
+	cout<<"sizeX"<<img->sizeX<<" sizeY"<<img->sizeY<<endl;
+
+	if(img->color){
+		allocation_tableau(img->tab, OCTET, img->sizeX*img->sizeY*3);
+		for(int i = 0 ; i < regs.size() ; i ++){
+			for(int y = 0 ; y < regs[i]->sizeY ; y++){
+				for(int x = 0 ; x < regs[i]->sizeX ; x++){
+					for(int c = 0; c < 3 ; c++){
+						img->tab[
+							((y+regs[i]->startY)*img->sizeX + x + regs[i]->startX)*3+c] 
+							= 
+							regs[i]->tab[(y*regs[i]->sizeX + x)*3+c];
+					}
+				}
+			}
+		}
+	}else{
+		allocation_tableau(img->tab, OCTET, img->sizeX*img->sizeY);
+		for(int i = 0 ; i < regs.size() ; i ++){
+			for(int y = 0 ; y < regs[i]->sizeY ; y++){
+				for(int x = 0 ; x < regs[i]->sizeX ; x++){
+					img->tab[
+						(y+regs[i]->startY)*img->sizeX + x + regs[i]->startX] 
+						= 
+						regs[i]->tab[y*regs[i]->sizeX + x];
+				}
+			}
+		}
+	}
+	return img;
+}
 
 #endif
