@@ -75,12 +75,10 @@ public:
 	}
 
 	static vector<string> scanFolder(string path){
-		std::cout << "Oui" << std::endl;
 		vector<string> res = vector<string>();
 		for(const auto & entry : fs::directory_iterator(path)){
 			res.push_back(entry.path().string());
 		}
-		std::cout << "non ?" << std::endl;
 
 		return res;
 	}

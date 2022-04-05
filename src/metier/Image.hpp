@@ -52,6 +52,25 @@ public :
         }
     }
 
+    double variance(Couleur moyenne){
+        double res;
+
+        if(this->color){
+            for(int i = 0 ; i < this->sizeX*this->sizeY ; i++){
+                Couleur tmp(this->tab[i*3+0], this->tab[i*3+1], this->tab[i*3+2]);
+                res += tmp.dist(moyenne);
+            }
+        } else {
+            for(int i = 0 ; i < this->sizeX*this->sizeY ; i++){
+                Couleur tmp(this->tab[i]);
+                res += tmp.dist(moyenne);
+            }
+        }
+        res /= (double)(this->sizeX*this->sizeY);
+
+        return res;
+    }
+
     Couleur avg(){
         Couleur res;
 

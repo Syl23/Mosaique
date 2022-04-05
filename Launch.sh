@@ -11,4 +11,4 @@ then
 		fi
 	fi
 fi
-./"$DIR"/Mosaique images/baboon.ppm test.ppm 32 1
+./"$DIR"/Mosaique images/baboon.ppm test.ppm 100 1

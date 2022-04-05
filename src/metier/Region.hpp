@@ -16,6 +16,7 @@
 
 using namespace std;
 
+int counterNew = 0;
 
 class Region : public Image{
 public :
@@ -23,9 +24,9 @@ public :
 	int startY;
 
 	string bestImg;
-	double bestPsnr = 0;
+	double bestPsnr;
     Region(){
-
+		bestPsnr = 0;
     }
     ~Region(){
 
@@ -37,8 +38,88 @@ public :
         this->startX *= a;
         this->startY *= a;
     }
+
+	bool split(vector<Region *> *regions, double seuil){
+		bool isFeuille = true;
+		if(this->sizeX > 16 && this->sizeY > 16){
+			Couleur c = this->avg();
+			double variance = this->variance(c);
+			cout << "Var : " << variance << endl;
+			if(variance > seuil){
+				isFeuille = false;
+				int regSizeX = this->sizeX / 2;
+				int regSizeY = this->sizeY / 2;
+				for(int x = 0 ; x < 2 ; x++){
+					for(int y = 0 ; y < 2 ; y++){
+						Region * tmp = new Region();
+						counterNew++;
+						
+						allocation_tableau(tmp->tab, OCTET, regSizeX*regSizeY*3);
+						tmp->startX = (x*regSizeX);
+						tmp->startY = (y*regSizeY);
+
+						tmp->sizeX = regSizeX;
+						tmp->sizeY = regSizeY;
+						
+						for(int j = (y*regSizeY) ; j < tmp->startY + tmp->sizeY ; j++){
+							for(int i = (x*regSizeX) ; i < tmp->startX + tmp->sizeX ; i++ ){
+								for(int c = 0 ; c< 3 ; c++){
+									tmp->tab[((j-tmp->startY)*tmp->sizeX + i - tmp->startX)*3+c] = this->tab[(j*this->sizeX + i)*3+c];
+								}
+							}
+						}
+
+						tmp->startX = (x*regSizeX) + this->startX;
+						tmp->startY = (y*regSizeY) + this->startY;
+
+						if(tmp->split(regions, seuil)){
+							regions->push_back(tmp);
+						} else {
+							delete tmp;
+						}
+					}
+				}
+			}
+		}
+		return isFeuille;
+	}
 };
 
+void unevenFindBestImages(vector<Region*> regions){
+	string databaseName = "dataBase/";
+	ifstream databaseLocation ("DatabaseLocation");
+	bool found = false;
+	if (databaseLocation.good()) {
+		found = (bool)getline(databaseLocation, databaseName);
+		databaseLocation.close();
+	}
+	if (!found) {
+		ofstream write("DatabaseLocation");
+		write << databaseName;
+		write.close();
+	}
+	auto files = Database::scanFolder(databaseName);
+	for(int j = 0 ; j < files.size() ; j++){
+        bool color = regions[0]->color;
+		auto f = files[j];
+
+		Image * tmp = new Image((char *)f.c_str(), color);
+
+		cout<<((int)(map(j,0,files.size(),0,100)*100.0))/100.0<<"%"<<endl;
+		for(int i = 0 ; i < regions.size() ; i++){
+			Image * vignette =  tmp->scale(regions[i]);
+
+			double tmPsnr = vignette->ressemblance(regions[i]);
+			if(tmPsnr > regions[i]->bestPsnr){
+				regions[i]->bestPsnr = tmPsnr;
+				regions[i]->bestImg = f;
+			}
+			delete vignette;
+
+		}
+		delete tmp;
+	}
+}
 void findBestImages(vector<Region*> regions){
 
 	string databaseName = "dataBase/";
@@ -53,7 +134,6 @@ void findBestImages(vector<Region*> regions){
 		write << databaseName;
 		write.close();
 	}
-	std::cout << "Database : " << databaseName << std::endl;
 	auto files = Database::scanFolder(databaseName);
 	for(int j = 0 ; j < files.size() ; j++){
         bool color = regions[0]->color;
@@ -96,9 +176,7 @@ void findBestImages(vector<Region*> regions){
 				//splitedRegions[i][k]->bestImg = "images/gerard.pgm";
 			}
 		}
-	}
-
-
+	}1
 	for(int i = 0 ; i < 256 ; i ++){
 		//cout<<"splitedRegions[i].size() : "<<splitedRegions[i].size()<<endl;
 		if(splitedRegions[i].size()>0){
@@ -146,6 +224,25 @@ void scale(vector<Region*> regions, int size){
 		regions[i]->startX *= size;
 		regions[i]->startY *= size;
 	}		
+}
+
+vector<Region*> unevenSplit(Image * img, double seuil){
+	vector<Region*> res;
+	Region * r = new Region();
+	counterNew++;
+	std::cout << "Counter : " << counterNew << std::endl;
+	r->startX = 0;
+	r->startY = 0;
+	r->sizeX = img->sizeX;
+	r->sizeY = img->sizeY;
+	r->tab = img->tab;
+	r->color = img->color;
+	if(r->split(&res, seuil)){
+		res.push_back(r);
+	} else {
+		delete r;
+	}
+	return res;
 }
 
 vector<Region*> split(Image * img, int nbvdiv){
