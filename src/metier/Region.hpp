@@ -16,43 +16,45 @@
 
 using namespace std;
 
-class Region : public Image{
-public :
+class Region : public Image {
+public:
 	int startX;
 	int startY;
 
-	Image * bestImg;
-	int cursorPosGiga;
+	Image* bestImg;
 	double bestPsnr;
-    Region(){
+
+
+	Region() {
 		startX = 0;
 		startY = 0;
 		bestPsnr = 0;
-    }
-    ~Region(){
+		bestImg = nullptr;
+	}
+	~Region() {
 
-    }
+	}
 
-    void scale(int a){
-        this->sizeX *=a;
-        this->sizeY *=a;
-        this->startX *= a;
-        this->startY *= a;
-    }
+	void scale(int a) {
+		this->sizeX *= a;
+		this->sizeY *= a;
+		this->startX *= a;
+		this->startY *= a;
+	}
 
-	bool split(vector<Region *> *regions, double seuil, int minimal){
+	bool split(vector<Region*>* regions, double seuil, int minimal) {
 		bool isFeuille = true;
-		if(this->sizeX >= minimal && this->sizeY >= minimal){
+		if (this->sizeX >= minimal && this->sizeY >= minimal) {
 			Couleur c = this->avg();
 			double variance = this->variance(c);
-			if(variance > seuil){
+			if (variance > seuil) {
 				isFeuille = false;
 				int regSizeX = 0;
 				int regSizeY = 0;
 
 				int cumulativeRegSizeX = 0;
 
-				for(int x = 0 ; x < 2 ; x++){
+				for (int x = 0; x < 2; x++) {
 					regSizeX = this->sizeX / 2;
 					int cumulativeRegSizeY = 0;
 
@@ -60,7 +62,7 @@ public :
 						regSizeX++;
 					}
 
-					for(int y = 0 ; y < 2 ; y++){
+					for (int y = 0; y < 2; y++) {
 
 						Region* tmp = new Region();
 
@@ -70,17 +72,17 @@ public :
 						}
 
 
-						allocation_tableau(tmp->tab, OCTET, regSizeX*regSizeY*3);
+						allocation_tableau(tmp->tab, OCTET, regSizeX * regSizeY * 3);
 
 						tmp->startX = cumulativeRegSizeX;
 						tmp->startY = cumulativeRegSizeY;
 
 						tmp->sizeX = regSizeX;
 						tmp->sizeY = regSizeY;
-						
-						for(int j = cumulativeRegSizeY; j < tmp->startY + tmp->sizeY ; j++){
-							for(int i = cumulativeRegSizeX; i < tmp->startX + tmp->sizeX ; i++ ){
-								for(int c = 0 ; c< 3 ; c++){
+
+						for (int j = cumulativeRegSizeY; j < tmp->startY + tmp->sizeY; j++) {
+							for (int i = cumulativeRegSizeX; i < tmp->startX + tmp->sizeX; i++) {
+								for (int c = 0; c < 3; c++) {
 									OCTET oct = this->tab[(j * this->sizeX + i) * 3 + c];
 									tmp->tab[((j - tmp->startY) * tmp->sizeX + i - tmp->startX) * 3 + c] = oct;
 								}
@@ -90,9 +92,10 @@ public :
 						tmp->startX = cumulativeRegSizeX + this->startX;
 						tmp->startY = cumulativeRegSizeY + this->startY;
 
-						if(tmp->split(regions, seuil, minimal)){
+						if (tmp->split(regions, seuil, minimal)) {
 							regions->push_back(tmp);
-						} else {
+						}
+						else {
 							delete tmp;
 						}
 
@@ -112,9 +115,9 @@ struct Vector2 {
 	int y;
 };
 
-void unevenFindBestImages(vector<Region*> regions){
+void unevenFindBestImages(vector<Region*> regions) {
 	string databaseName = "dataBase/";
-	ifstream databaseLocation ("DatabaseLocation");
+	ifstream databaseLocation("DatabaseLocation");
 	bool found = false;
 	if (databaseLocation.good()) {
 		found = (bool)getline(databaseLocation, databaseName);
@@ -126,36 +129,36 @@ void unevenFindBestImages(vector<Region*> regions){
 		write.close();
 	}
 	auto files = Database::scanFolder(databaseName);
-	for(int j = 0 ; j < files.size() ; j++){
+	for (int j = 0; j < files.size(); j++) {
 		if (j % 10 == 0) {
 			cout << "Counter : " << j << endl;
 		}
-        bool color = regions[0]->color;
+		bool color = regions[0]->color;
 		auto f = files[j];
 
-		Image * tmp = new Image((char *)f.c_str(), color);
+		Image* tmp = new Image((char*)f.c_str(), color);
 		bool set = false;
-		for(int i = 0 ; i < regions.size() ; i++){
-			Image * vignette =  tmp->scale(regions[i]);
-			
+		for (int i = 0; i < regions.size(); i++) {
+			Image* vignette = tmp->scale(regions[i]);
+
 			double tmPsnr = vignette->ressemblance(regions[i]);
-			if(tmPsnr > regions[i]->bestPsnr){
+			if (tmPsnr > regions[i]->bestPsnr) {
 				regions[i]->bestPsnr = tmPsnr;
 				regions[i]->bestImg = tmp;
 				set = true;
 			}
 			delete vignette;
-			
+
 		}
 		if (!set) {
 			delete tmp;
 		}
 	}
 }
-void findBestImages(vector<Region*> regions){
+void findBestImages(vector<Region*> regions) {
 
 	string databaseName = "dataBase/";
-	ifstream databaseLocation ("DatabaseLocation");
+	ifstream databaseLocation("DatabaseLocation");
 	bool found = false;
 	if (databaseLocation.good()) {
 		found = (bool)getline(databaseLocation, databaseName);
@@ -167,17 +170,17 @@ void findBestImages(vector<Region*> regions){
 		write.close();
 	}
 	auto files = Database::scanFolder(databaseName);
-	for(int j = 0 ; j < files.size() ; j++){
-        bool color = regions[0]->color;
+	for (int j = 0; j < files.size(); j++) {
+		bool color = regions[0]->color;
 		auto f = files[j];
 
-		Image * tmp = new Image((char *)f.c_str(), color);
-		Image * vignette =  tmp->scale(regions[0]);
+		Image* tmp = new Image((char*)f.c_str(), color);
+		Image* vignette = tmp->scale(regions[0]);
 		bool set = false;
-		cout<<((int)(map(j,0,files.size(),0,100)*100.0))/100.0<<"%"<<endl;
-		for(int i = 0 ; i < regions.size() ; i++){
+		cout << ((int)(map(j, 0, files.size(), 0, 100) * 100.0)) / 100.0 << "%" << endl;
+		for (int i = 0; i < regions.size(); i++) {
 			double tmPsnr = vignette->ressemblance(regions[i]);
-			if(tmPsnr > regions[i]->bestPsnr){
+			if (tmPsnr > regions[i]->bestPsnr) {
 				regions[i]->bestPsnr = tmPsnr;
 				regions[i]->bestImg = tmp;
 				set = true;
@@ -190,7 +193,7 @@ void findBestImages(vector<Region*> regions){
 	}
 }
 
-void readEntete(ifstream* file, int &nb_colonnes, int &nb_lignes) {
+void readEntete(ifstream* file, int& nb_colonnes, int& nb_lignes) {
 	int octet = file->get();
 	if (octet == 'P') {
 		do {
@@ -211,7 +214,6 @@ void readEntete(ifstream* file, int &nb_colonnes, int &nb_lignes) {
 		char c = octet;
 		str.push_back(c);
 	} while (octet != 0x0A && octet != 0x20);
-	
 	nb_lignes = atoi(str.c_str());
 
 	do {
@@ -219,7 +221,7 @@ void readEntete(ifstream* file, int &nb_colonnes, int &nb_lignes) {
 	} while (octet != 0x0A);
 }
 
-void findBestImagesGiga(vector<Region*> regions, bool uneven) {
+void findBestImagesGiga(vector<Region*> regions) {
 	string databaseName = "dataBase/";
 	ifstream databaseLocation("DatabaseLocation");
 	bool found = false;
@@ -241,63 +243,90 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 		gigafile.open((files[j]), ifstream::in | ifstream::binary);
 		if (gigafile.good()) {
 			int counter = 0;
-			bool headerRead = true;
-			while(gigafile.good() && headerRead) {
-				if (counter % 10 == 0) {
+			bool end = false;
+			while (gigafile.good() && !end) {
+				if (counter % 20 == 0) {
 					cout << "Counter : " << counter << "\n";
 				}
+
 				int nb_lignes = 0;
 				int nb_colonnes = 0;
 				//READ EN TETE
-				readEntete(&gigafile, nb_colonnes, nb_lignes);
-				// FIN READ ENTETE
-				counter++;
+				if (gigafile.peek() != EOF) {
+					readEntete(&gigafile, nb_colonnes, nb_lignes);
+					// FIN READ ENTETE
+					counter++;
 
-				if (!gigafile.eof()) {
-					unsigned char * data = new unsigned char[nb_lignes * nb_colonnes * nbCouleur];
-					gigafile.read((char*)data, nb_lignes * nb_colonnes * nbCouleur);
-					Image* tmp = new Image(color);
-					tmp->tab = data;
-					tmp->sizeX = nb_colonnes;
-					tmp->sizeY = nb_lignes;
-					Image* vignette;
-					if (!uneven) {
-						vignette = tmp->scale(regions[0]);
-					}
-					bool set = false;
-					for (int i = 0; i < regions.size(); i++) {
-						if (uneven) {
-							vignette = tmp->scale(regions[i]);
-						}
-						double tmPsnr = vignette->ressemblance(regions[i]);
-						if (tmPsnr > regions[i]->bestPsnr) {
-							regions[i]->bestPsnr = tmPsnr;
-							regions[i]->bestImg = tmp;
-							set = true;
-						}
-						if (uneven) {
+					if (!gigafile.eof()) {
+						unsigned char* data = new unsigned char[nb_lignes * nb_colonnes * nbCouleur];
+
+						gigafile.read((char*)data, nb_lignes * nb_colonnes * nbCouleur);
+						Image* tmp = new Image(color);
+						tmp->tab = data;
+						tmp->sizeX = nb_colonnes;
+						tmp->sizeY = nb_lignes;
+
+						Image* savedImage = new Image(tmp);
+						for (int i = 0; i < regions.size(); i++) {
+							Image* vignette = tmp->scaleGiga(regions[i]);
+							double tmPsnr = vignette->ressemblance(regions[i]);
+							if (tmPsnr > regions[i]->bestPsnr) {
+								regions[i]->bestPsnr = tmPsnr;
+								if (regions[i]->bestImg != nullptr) {
+									regions[i]->bestImg->reference--;
+
+									if (regions[i]->bestImg->reference <= 0) {
+										delete regions[i]->bestImg;
+									}
+								}
+								regions[i]->bestImg = savedImage;
+								savedImage->reference++;
+							}
 							delete vignette;
 						}
-					}
-					
-					if (!uneven) {
-						delete vignette;
-					}
-					if (!set) {
+						if (savedImage->reference <= 0) {
+							delete savedImage;
+						}
 						delete tmp;
 					}
-					//delete tmp;
 				}
-				
+				else {
+					end = true;
+				}
+
 			}
 		}
-		cout << ((int)(map(j, 0, files.size(), 0, 100) * 100.0)) / 100.0 << "%\n";
 		gigafile.close();
 	}
+
+	/*for (int i = 0; i < regions.size(); i++) {
+		regions[i]->sizeX *= size;
+		regions[i]->sizeY *= size;
+		regions[i]->startX *= size;
+		regions[i]->startY *= size;
+
+		if (regions[i]->tab != nullptr) {
+			delete regions[i]->tab;
+		}
+		int colorMax = (regions[i]->color ? 3 : 1);
+		regions[i]->tab = new unsigned char(regions[i]->sizeX * regions[i]->sizeY * colorMax);
+		for (int y = 0; y < regions[i]->sizeY; y++) {
+			for (int x = 0; x < regions[i]->sizeX; x++) {
+				for (int c = 0; c < colorMax; c++) {
+					regions[i]->tab[(y * res->sizeX + x) * 3 + c] = regions[i]->bestTab[((int)(
+						(int)(map(y, 0, res->sizeY, 0, this->sizeY)) * this->sizeX +
+						(int)(map(x, 0, res->sizeX, 0, this->sizeX))
+						)) * 3 + c];
+				}
+			}
+		}
+
+		regions[i]->tab = regions[i]->bestTab;
+	}*/
 }
 
 /*void findBestImages(vector<Region*> regions, vector<vector<string>> * dataBase){
-	vector<vector<Region*>> splitedRegions = vector<vector<Region*>>(256); 
+	vector<vector<Region*>> splitedRegions = vector<vector<Region*>>(256);
 	for(int i = 0 ; i < regions.size() ; i++){
 		int tmpAvg = round(avg(regions[i]));
 		splitedRegions[tmpAvg].push_back(regions[i]);
@@ -346,91 +375,93 @@ void findBestImagesGiga(vector<Region*> regions, bool uneven) {
 	}
 }*/
 
-void replaceWithBestImg(vector<Region*> regions){
-    bool color = regions[0]->color;
-	for(int i = 0 ; i < regions.size() ; i++){
-		Image * vignette = regions[i]->bestImg->scale(regions[i]);
+void replaceWithBestImg(vector<Region*> regions) {
+	bool color = regions[0]->color;
+	for (int i = 0; i < regions.size(); i++) {
+		Image* vignette = regions[i]->bestImg->scale(regions[i]);
 
 		delete regions[i]->tab;
 		regions[i]->tab = vignette->tab;
 	}
 }
 
-void scale(vector<Region*> regions, int size){
-	for(int i = 0 ; i < regions.size() ; i ++){
+void scale(vector<Region*> regions, int size) {
+	for (int i = 0; i < regions.size(); i++) {
 		regions[i]->sizeX *= size;
 		regions[i]->sizeY *= size;
 		regions[i]->startX *= size;
 		regions[i]->startY *= size;
-	}		
+	}
 }
 
-vector<Region*> unevenSplit(Image * img, double seuil, int minimal){
+vector<Region*> unevenSplit(Image* img, double seuil, int minimal) {
 	vector<Region*> res;
-	Region * r = new Region();
+	Region* r = new Region();
 	r->startX = 0;
 	r->startY = 0;
 	r->sizeX = img->sizeX;
 	r->sizeY = img->sizeY;
 	r->tab = img->tab;
 	r->color = img->color;
-	if(r->split(&res, seuil, minimal)){
+	if (r->split(&res, seuil, minimal)) {
 		res.push_back(r);
-	} else {
+	}
+	else {
 		delete r;
 	}
 	return res;
 }
 
-vector<Region*> split(Image * img, int nbvdiv){
+vector<Region*> split(Image* img, int nbvdiv) {
 	vector<Region*> res;
-	if(img->color){
+	if (img->color) {
 		int regSizeX = img->sizeX / nbvdiv;
 		int regSizeY = img->sizeY / nbvdiv;
 
-		for(int x = 0 ; x < nbvdiv ; x++){
-			for(int y = 0 ; y < nbvdiv ; y++){
-				Region * tmp = new Region();
-				allocation_tableau(tmp->tab, OCTET, regSizeX*regSizeY*3);
-				
-				tmp->startX = x*regSizeX;
-				tmp->startY = y*regSizeY;
+		for (int x = 0; x < nbvdiv; x++) {
+			for (int y = 0; y < nbvdiv; y++) {
+				Region* tmp = new Region();
+				allocation_tableau(tmp->tab, OCTET, regSizeX * regSizeY * 3);
+
+				tmp->startX = x * regSizeX;
+				tmp->startY = y * regSizeY;
 
 				tmp->sizeX = regSizeX;
 				tmp->sizeY = regSizeY;
-				
-				for(int j = tmp->startY ; j < tmp->startY + tmp->sizeY ; j++){
-					for(int i = tmp->startX ; i < tmp->startX + tmp->sizeX ; i++ ){
-						for(int c = 0 ; c< 3 ; c++){
+
+				for (int j = tmp->startY; j < tmp->startY + tmp->sizeY; j++) {
+					for (int i = tmp->startX; i < tmp->startX + tmp->sizeX; i++) {
+						for (int c = 0; c < 3; c++) {
 							// cout<<"taille : "<<regSizeX*regSizeY*3<<endl;
 							// cout<<"ind    : "<<((j-tmp->startY)*tmp->sizeX + i - tmp->startX)*3+c<<endl;
-							tmp->tab[((j-tmp->startY)*tmp->sizeX + i - tmp->startX)*3+c] =
-							img->tab[(j*img->sizeX + i)*3+c];
+							tmp->tab[((j - tmp->startY) * tmp->sizeX + i - tmp->startX) * 3 + c] =
+								img->tab[(j * img->sizeX + i) * 3 + c];
 						}
 					}
 				}
 				res.push_back(tmp);
 			}
 		}
-	} else {
+	}
+	else {
 		int regSizeX = img->sizeX / nbvdiv;
 		int regSizeY = img->sizeY / nbvdiv;
 
-		for(int x = 0 ; x < nbvdiv ; x++){
-			for(int y = 0 ; y < nbvdiv ; y++){
-				Region * tmp = new Region();
-				allocation_tableau(img->tab, OCTET, regSizeX*regSizeY);
-				
-				tmp->startX = x*regSizeX;
-				tmp->startY = y*regSizeY;
+		for (int x = 0; x < nbvdiv; x++) {
+			for (int y = 0; y < nbvdiv; y++) {
+				Region* tmp = new Region();
+				allocation_tableau(img->tab, OCTET, regSizeX * regSizeY);
+
+				tmp->startX = x * regSizeX;
+				tmp->startY = y * regSizeY;
 
 				tmp->sizeX = regSizeX;
 				tmp->sizeY = regSizeY;
-				
-				for(int j = tmp->startY ; j < tmp->startY + tmp->sizeY ; j++){
-					for(int i = tmp->startX ; i < tmp->startX + tmp->sizeX ; i++ ){
-						tmp->tab[(j-tmp->startY)*tmp->sizeX + i - tmp->startX] =
-						img->tab[j*img->sizeX + i];
+
+				for (int j = tmp->startY; j < tmp->startY + tmp->sizeY; j++) {
+					for (int i = tmp->startX; i < tmp->startX + tmp->sizeX; i++) {
+						tmp->tab[(j - tmp->startY) * tmp->sizeX + i - tmp->startX] =
+							img->tab[j * img->sizeX + i];
 					}
 				}
 				res.push_back(tmp);
@@ -440,52 +471,54 @@ vector<Region*> split(Image * img, int nbvdiv){
 	return res;
 }
 
-Image * merge(vector<Region*> regs){
-	Image * img = new Image();
+Image* merge(vector<Region*> regs) {
+	Image* img = new Image();
 	img->sizeX = 0;
 	img->sizeY = 0;
 
-	if(regs.size() > 0){
+	if (regs.size() > 0) {
 		img->color = regs[0]->color;
-	}else{
+	}
+	else {
 		return img;
 	}
-	
 
-	for(int i = 0 ; i < regs.size() ; i ++){
-		if(regs[i]->sizeX + regs[i]->startX > img->sizeX){
+
+	for (int i = 0; i < regs.size(); i++) {
+		if (regs[i]->sizeX + regs[i]->startX > img->sizeX) {
 			img->sizeX = regs[i]->sizeX + regs[i]->startX;
 		}
-		if(regs[i]->sizeY + regs[i]->startY > img->sizeY){
+		if (regs[i]->sizeY + regs[i]->startY > img->sizeY) {
 			img->sizeY = regs[i]->sizeY + regs[i]->startY;
 		}
 	}
 
-	cout<<"sizeX"<<img->sizeX<<" sizeY"<<img->sizeY<<endl;
+	cout << "sizeX" << img->sizeX << " sizeY" << img->sizeY << endl;
 
-	if(img->color){
-		allocation_tableau(img->tab, OCTET, img->sizeX*img->sizeY*3);
-		for(int i = 0 ; i < regs.size() ; i ++){
-			for(int y = 0 ; y < regs[i]->sizeY ; y++){
-				for(int x = 0 ; x < regs[i]->sizeX ; x++){
-					for(int c = 0; c < 3 ; c++){
+	if (img->color) {
+		allocation_tableau(img->tab, OCTET, img->sizeX * img->sizeY * 3);
+		for (int i = 0; i < regs.size(); i++) {
+			for (int y = 0; y < regs[i]->sizeY; y++) {
+				for (int x = 0; x < regs[i]->sizeX; x++) {
+					for (int c = 0; c < 3; c++) {
 						img->tab[
-							((y+regs[i]->startY)*img->sizeX + x + regs[i]->startX)*3+c] 
-							= 
-							regs[i]->tab[(y*regs[i]->sizeX + x)*3+c];
+							((y + regs[i]->startY) * img->sizeX + x + regs[i]->startX) * 3 + c]
+							=
+								regs[i]->tab[(y * regs[i]->sizeX + x) * 3 + c];
 					}
 				}
 			}
 		}
-	}else{
-		allocation_tableau(img->tab, OCTET, img->sizeX*img->sizeY);
-		for(int i = 0 ; i < regs.size() ; i ++){
-			for(int y = 0 ; y < regs[i]->sizeY ; y++){
-				for(int x = 0 ; x < regs[i]->sizeX ; x++){
+	}
+	else {
+		allocation_tableau(img->tab, OCTET, img->sizeX * img->sizeY);
+		for (int i = 0; i < regs.size(); i++) {
+			for (int y = 0; y < regs[i]->sizeY; y++) {
+				for (int x = 0; x < regs[i]->sizeX; x++) {
 					img->tab[
-						(y+regs[i]->startY)*img->sizeX + x + regs[i]->startX] 
-						= 
-						regs[i]->tab[y*regs[i]->sizeX + x];
+						(y + regs[i]->startY) * img->sizeX + x + regs[i]->startX]
+						=
+							regs[i]->tab[y * regs[i]->sizeX + x];
 				}
 			}
 		}
