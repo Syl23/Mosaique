@@ -18,7 +18,7 @@ double map(double x, double b1, double b2, double b3, double b4) {
 
 class Image {
 public:
-	OCTET* tab;
+	OCTET* tab = nullptr;
 	int sizeX;
 	int sizeY;
 	bool color;
@@ -118,71 +118,55 @@ public:
 			return(1.0 / cDist);
 	}
 
-	Image* scaleGiga(Image* model) {
+	Image* scale(int tsizeX, int tsizeY) {
 		Image* res = new Image();
-		res->sizeX = model->sizeX;
-		res->sizeY = model->sizeY;
+		res->sizeX = tsizeX;
+		res->sizeY = tsizeY;
 		res->color = this->color;
-		if (this->color) {
-			res->tab = new unsigned char[res->sizeX * res->sizeX * res->sizeY * 3];
-			for (int y = 0; y < res->sizeY; y++) {
-				for (int x = 0; x < res->sizeX; x++) {
-					for (int c = 0; c < 3; c++) {
-						res->tab[(y * res->sizeX + x) * 3 + c] = this->tab[((int)(
-							(int)(map(y, 0, res->sizeY, 0, this->sizeY)) * this->sizeX +
-							(int)(map(x, 0, res->sizeX, 0, this->sizeX))
-							)) * 3 + c];
-					}
-				}
-			}
+		int colorNb = (this->color ? 3 : 1);
+
+		if (res->tab != nullptr) {
+			delete res->tab;
 		}
-		else {
-			res->tab = new unsigned char[res->sizeX * res->sizeX * res->sizeY];
-			for (int y = 0; y < res->sizeY; y++) {
-				for (int x = 0; x < res->sizeX; x++) {
-					res->tab[y * res->sizeX + x] = this->tab[(int)(
+
+		res->tab = new unsigned char[res->sizeX * res->sizeY * colorNb];
+		for (int y = 0; y < res->sizeY; y++) {
+			for (int x = 0; x < res->sizeX; x++) {
+				for (int c = 0; c < colorNb; c++) {
+					res->tab[(y * res->sizeX + x) * colorNb + c] = this->tab[((int)(
 						(int)(map(y, 0, res->sizeY, 0, this->sizeY)) * this->sizeX +
 						(int)(map(x, 0, res->sizeX, 0, this->sizeX))
-						)];
+						)) * colorNb + c];
 				}
 			}
 		}
 
 		return res;
 	}
+
 
 	Image* scale(Image* model) {
 		Image* res = new Image();
 		res->sizeX = model->sizeX;
 		res->sizeY = model->sizeY;
 		res->color = this->color;
-		if (this->color) {
-			allocation_tableau(res->tab, OCTET, res->sizeX * res->sizeY * 3);
-			for (int y = 0; y < res->sizeY; y++) {
-				for (int x = 0; x < res->sizeX; x++) {
-					for (int c = 0; c < 3; c++) {
-						res->tab[(y * res->sizeX + x) * 3 + c] = this->tab[((int)(
-							(int)(map(y, 0, res->sizeY, 0, this->sizeY)) * this->sizeX +
-							(int)(map(x, 0, res->sizeX, 0, this->sizeX))
-							)) * 3 + c];
-					}
-				}
-			}
-		}
-		else {
-			allocation_tableau(res->tab, OCTET, res->sizeX * res->sizeY);
-			for (int y = 0; y < res->sizeY; y++) {
-				for (int x = 0; x < res->sizeX; x++) {
-					res->tab[y * res->sizeX + x] = this->tab[(int)(
+		int colorNb = (this->color ? 3 : 1);
+
+		res->tab = new unsigned char[res->sizeX * res->sizeY * colorNb];
+		for (int y = 0; y < res->sizeY; y++) {
+			for (int x = 0; x < res->sizeX; x++) {
+				for (int c = 0; c < colorNb; c++) {
+					res->tab[(y * res->sizeX + x) * colorNb + c] = this->tab[((int)(
 						(int)(map(y, 0, res->sizeY, 0, this->sizeY)) * this->sizeX +
 						(int)(map(x, 0, res->sizeX, 0, this->sizeX))
-						)];
+						)) * colorNb + c];
 				}
 			}
 		}
 
 		return res;
 	}
+
 	double psnr(Image* disImg, int n, int m) {
 		double res = -1.0;
 		if (this->color == disImg->color) {

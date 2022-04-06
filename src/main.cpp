@@ -17,8 +17,7 @@ using namespace std;
 
 int main(int argc, char const* argv[]) {
 
-	bool uneven = true;
-	bool giga = true;
+	bool uneven = false;
 
 	if (argc != 5) {
 
@@ -29,32 +28,21 @@ int main(int argc, char const* argv[]) {
 
 	Image* imageIn = new Image((char*)argv[1]);
 	vector<Region*> regions;
-	if (giga) {
-		if (uneven) {
-			regions = unevenSplit(imageIn, (double)atoi(argv[3]), 8);
-			findBestImagesGiga(regions);
-		}
-		else {
-			regions = split(imageIn, atoi(argv[3]));
-			findBestImagesGiga(regions);
-		}
+
+	if (uneven) {
+		regions = unevenSplit(imageIn, (double)atoi(argv[3]), 16);
 	}
 	else {
-		if (uneven) {
-			regions = unevenSplit(imageIn, (double)atoi(argv[3]), 8);
-			unevenFindBestImages(regions);
-		}
-		else {
-			regions = split(imageIn, atoi(argv[3]));
-			findBestImages(regions);
-		}
+		regions = split(imageIn, atoi(argv[3]));
 	}
+	findBestImagesGiga(regions, atoi(argv[4]), !uneven);
+	scale(regions, atoi(argv[4]));
+	applyBestImages(regions);
+
 
 	for (int i = 0; i < regions.size(); i++) {
 		//cout<<"psnr : "<<regions[i]->psnr<<endl;
 	}
-	scale(regions, atoi(argv[4]));
-	replaceWithBestImg(regions);
 
 
 	Image* out = merge(regions);
