@@ -4,7 +4,8 @@ if [ ! -z "$1" ]
 then
 	if [ "$1" = "-m" ]
 	then
-		make -C "$DIR" 
+		cmake --build "$DIR/" --config Release
+
 		if [ ! $? -eq 0 ]
 		then
 			exit 1

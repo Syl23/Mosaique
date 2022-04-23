@@ -16,5 +16,4 @@ echo "CMake"
 cmake . -B"$DIR"
 
 echo "Build"
-make -C "$DIR"
-
+cmake --build "$DIR/" --config Release
